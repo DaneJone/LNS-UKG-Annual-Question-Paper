@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -357,6 +358,7 @@
   <div class="preview-actions">
     <button class="btn-close" onclick="closePreview()">✕ Close</button>
     <button class="btn-save" id="btn-save-png" onclick="savePaper()">⬇ Save as PNG</button>
+    <button class="btn-print" onclick="printPaper()">🖨 Print / Save PDF</button>
   </div>
   <div id="paper">
     <!-- filled by JS -->
@@ -549,6 +551,45 @@ async function savePaper() {
 
   btn.textContent = '⬇ Save as PNG';
   btn.disabled = false;
+}
+
+
+function printPaper() {
+  const paper = document.getElementById('paper');
+  const printWin = window.open('', '_blank');
+  printWin.document.write('<html><head><title>Question Paper</title>'
+    + '<link href="https://fonts.googleapis.com/css2?family=Playwrite+IN&display=swap" rel="stylesheet">'
+    + '<style>'
+    + '* { box-sizing: border-box; margin: 0; padding: 0; }'
+    + '@page { size: A4; margin: 12mm 14mm; }'
+    + 'body { font-family: \'Playwrite IN\', cursive; color: #1a1a2e; background: #fff; }'
+    + '.paper-header { text-align: center; margin-bottom: 36px; border-bottom: 2.5px double #1a1a2e; padding-bottom: 20px; }'
+    + '.school-name { font-family: \'Bookman Old Style\', Georgia, serif; font-size: 22pt; font-weight: 700; letter-spacing: 2px; text-decoration: underline; }'
+    + '.exam-title { font-family: \'Bookman Old Style\', Georgia, serif; font-size: 17pt; font-weight: 700; margin-top: 6px; text-decoration: underline; }'
+    + '.class-subj { font-family: \'Bookman Old Style\', Georgia, serif; font-size: 15pt; margin-top: 6px; text-decoration: underline; }'
+    + '.paper-meta { font-family: \'Bookman Old Style\', Georgia, serif; display: flex; justify-content: space-between; font-size: 13pt; margin-bottom: 28px; }'
+    + '.name-line { border-bottom: 1.5px solid #1a1a2e; width: 220px; display: inline-block; }'
+    + '.q-label { font-family: \'Playwrite IN\', cursive; font-size: 12pt; font-weight: 600; margin-bottom: 10px; display: flex; justify-content: space-between; }'
+    + '.marks { color: #555; font-size: 11pt; }'
+    + '.q2-section { margin: 22px 0 30px; }'
+    + '.q2-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 28px 30px; margin-top: 14px; }'
+    + '.q2-item { display: flex; align-items: center; gap: 10px; }'
+    + '.q2-item img { width: 68px; height: 68px; object-fit: contain; }'
+    + '.q2-line { flex: 1; border-bottom: 1.5px solid #1a1a2e; height: 28px; }'
+    + '.q3-section { margin: 22px 0; }'
+    + '.q3-paper-row { display: grid; grid-template-columns: 160px 30px 130px 130px 130px; gap: 0 6px; align-items: center; font-size: 13pt; margin: 22px 0; }'
+    + '.word { font-size: 13pt; }'
+    + '.dash { text-align: center; }'
+    + '.opt { border: 1.5px solid #aaa; border-radius: 20px; padding: 3px 10px; text-align: center; font-size: 12pt; }'
+    + '.divider { border: none; border-top: 1.5px solid #ccc; margin: 26px 0; }'
+    + '</style></head><body>'
+    + paper.innerHTML
+    + '</body></html>');
+  printWin.document.close();
+  printWin.onload = function() {
+    printWin.focus();
+    printWin.print();
+  };
 }
 
 // ── Init ──
