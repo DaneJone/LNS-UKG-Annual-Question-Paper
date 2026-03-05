@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Little Nest School – Question Paper Generator</title>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;600;700&family=Crimson+Pro:ital,wght@0,400;0,600;1,400&family=Playwrite+IN&display=swap" rel="stylesheet">
+<style>
+  
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --ink: #1a1a2e;
+    --paper: #ffffff;
+    --accent: #c0392b;
+    --soft: #e8ddd0;
+    --field-bg: #fff9f0;
+    --ui-bg: #1a1a2e;
+    --ui-card: #242440;
+    --ui-accent: #e8b86d;
+    --ui-text: #f0ece4;
+  }
+
+  body {
+    font-family: 'Crimson Pro', serif;
+    background: var(--ui-bg);
+    color: var(--ui-text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ── EDITOR PANEL ── */
+  #editor {
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 40px 24px 60px;
+  }
+
+  .brand {
+    text-align: center;
+    margin-bottom: 40px;
+  }
+  .brand h1 {
+    font-family: 'Caveat', cursive;
+    font-size: 2.6rem;
+    color: var(--ui-accent);
+    letter-spacing: 1px;
+  }
+  .brand p {
+    font-size: 1rem;
+    color: #9090b0;
+    margin-top: 4px;
+  }
+
+  .card {
+    background: var(--ui-card);
+    border: 1px solid #33335a;
+    border-radius: 16px;
+    padding: 28px 32px;
+    margin-bottom: 24px;
+  }
+  .card h2 {
+    font-family: 'Caveat', cursive;
+    font-size: 1.4rem;
+    color: var(--ui-accent);
+    margin-bottom: 18px;
+    border-bottom: 1px solid #33335a;
+    padding-bottom: 10px;
+  }
+
+  label {
+    display: block;
+    font-size: 0.88rem;
+    color: #9090b0;
+    margin-bottom: 5px;
+    margin-top: 14px;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+  }
+  label:first-child { margin-top: 0; }
+
+  input[type="text"] {
+    width: 100%;
+    background: #12122a;
+    border: 1px solid #33335a;
+    border-radius: 8px;
+    padding: 10px 14px;
+    color: var(--ui-text);
+    font-family: 'Crimson Pro', serif;
+    font-size: 1.05rem;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  input[type="text"]:focus { border-color: var(--ui-accent); }
+
+  /* Q2 image grid */
+  .img-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+  }
+  .img-slot {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+  }
+  .img-slot span {
+    font-size: 0.8rem;
+    color: #9090b0;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .img-upload-box {
+    width: 100%;
+    aspect-ratio: 1;
+    border: 2px dashed #33335a;
+    border-radius: 12px;
+    background: #12122a;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: border-color 0.2s, background 0.2s;
+    overflow: hidden;
+    position: relative;
+  }
+  .img-upload-box:hover { border-color: var(--ui-accent); background: #1c1c3a; }
+  .img-upload-box img {
+    width: 100%; height: 100%;
+    object-fit: contain;
+    padding: 8px;
+  }
+  .img-upload-box .plus {
+    font-size: 2rem;
+    color: #33335a;
+    transition: color 0.2s;
+  }
+  .img-upload-box:hover .plus { color: var(--ui-accent); }
+  .img-upload-box input[type="file"] {
+    position: absolute; inset: 0; opacity: 0; cursor: pointer;
+  }
+
+  /* Q3 rows */
+  .q3-row {
+    display: grid;
+    grid-template-columns: 1.2fr 0.3fr 1fr 1fr 1fr;
+    gap: 10px;
+    align-items: center;
+    margin-bottom: 10px;
+  }
+  .q3-row .sep {
+    text-align: center;
+    font-size: 1.4rem;
+    color: #9090b0;
+  }
+
+  .generate-btn {
+    width: 100%;
+    padding: 16px;
+    background: var(--ui-accent);
+    color: var(--ink);
+    border: none;
+    border-radius: 12px;
+    font-family: 'Caveat', cursive;
+    font-size: 1.5rem;
+    font-weight: 700;
+    cursor: pointer;
+    letter-spacing: 1px;
+    transition: transform 0.15s, box-shadow 0.15s;
+    box-shadow: 0 4px 20px rgba(232,184,109,0.3);
+  }
+  .generate-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(232,184,109,0.4); }
+  .generate-btn:active { transform: translateY(0); }
+
+  /* ── PREVIEW OVERLAY ── */
+  #preview-overlay {
+    display: none;
+    position: fixed; inset: 0;
+    background: rgba(10,10,28,0.92);
+    z-index: 999;
+    overflow-y: auto;
+    padding: 30px 20px 60px;
+  }
+  #preview-overlay.active { display: flex; flex-direction: column; align-items: center; }
+
+  .preview-actions {
+    display: flex; gap: 14px; margin-bottom: 20px;
+    width: 794px; max-width: 100%;
+    justify-content: flex-end;
+  }
+  .preview-actions button {
+    padding: 10px 22px;
+    border-radius: 8px;
+    font-family: 'Caveat', cursive;
+    font-size: 1.1rem;
+    cursor: pointer;
+    border: none;
+    transition: transform 0.15s;
+  }
+  .preview-actions button:hover { transform: translateY(-1px); }
+  .btn-close { background: #33335a; color: var(--ui-text); }
+  .btn-print { background: var(--ui-accent); color: var(--ink); font-weight: 700; }
+  .btn-save  { background: #2ecc71; color: #fff; font-weight: 700; }
+
+  /* ── THE A4 PAPER ── */
+  #paper {
+    width: 794px;
+    min-height: 1123px;
+    background: var(--paper);
+    color: var(--ink);
+    padding: 48px 52px;
+    position: relative;
+    box-shadow: 0 20px 80px rgba(0,0,0,0.6);
+    font-family: 'Playwrite IN', cursive;
+  }
+
+  .paper-header {
+    text-align: center;
+    margin-bottom: 36px;
+    border-bottom: 2.5px double var(--ink);
+    padding-bottom: 20px;
+  }
+  .paper-header .school-name {
+    font-family: 'Bookman Old Style', 'Bookman', 'URW Bookman L', Georgia, serif;
+    font-size: 2rem;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-decoration: underline;
+    text-underline-offset: 4px;
+  }
+  .paper-header .exam-title {
+    font-family: 'Bookman Old Style', 'Bookman', 'URW Bookman L', Georgia, serif;
+    font-size: 1.6rem;
+    font-weight: 700;
+    letter-spacing: 1px;
+    margin-top: 6px;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+  .paper-header .class-subj {
+    font-family: 'Bookman Old Style', 'Bookman', 'URW Bookman L', Georgia, serif;
+    font-size: 1.45rem;
+    margin-top: 6px;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  .paper-meta {
+    font-family: 'Bookman Old Style', 'Bookman', 'URW Bookman L', Georgia, serif;
+    display: flex;
+    justify-content: space-between;
+    font-size: 1.15rem;
+    margin-bottom: 28px;
+  }
+  .paper-meta .name-line { border-bottom: 1.5px solid var(--ink); width: 220px; display: inline-block; }
+
+  .q-label {
+    font-family: 'Playwrite IN', cursive;
+    font-size: 1.15rem;
+    font-weight: 600;
+    margin-bottom: 10px;
+    display: flex;
+    justify-content: space-between;
+  }
+  .marks { color: #555; font-size: 1rem; }
+
+  /* Q2 */
+  .q2-section { margin: 22px 0 30px; }
+  .q2-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 28px 30px;
+    margin-top: 14px;
+  }
+  .q2-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .q2-item img {
+    width: 68px; height: 68px;
+    object-fit: contain;
+  }
+  .q2-item .q2-line {
+    flex: 1;
+    border-bottom: 1.5px solid var(--ink);
+    height: 28px;
+  }
+
+  /* Q3 */
+  .q3-section { margin: 22px 0; }
+  .q3-paper-row {
+    display: grid;
+    grid-template-columns: 160px 30px 130px 130px 130px;
+    gap: 0 6px;
+    align-items: center;
+    font-size: 1.25rem;
+    margin: 22px 0;
+  }
+  .q3-paper-row .word { font-size: 1.3rem; }
+  .q3-paper-row .dash { text-align: center; }
+  .q3-paper-row .opt {
+    border: 1.5px solid #aaa;
+    border-radius: 20px;
+    padding: 3px 10px;
+    text-align: center;
+    font-size: 1.2rem;
+  }
+
+  .divider { border: none; border-top: 1.5px solid #ccc; margin: 26px 0; }
+
+  @media print {
+    body * { visibility: hidden; }
+    #paper, #paper * { visibility: visible; }
+    #paper { position: fixed; inset: 0; width: 210mm; min-height: 297mm; margin: 0; box-shadow: none; padding: 14mm 16mm; }
+    #preview-overlay { display: block !important; background: white; }
+    .preview-actions { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<div id="editor">
+  <div class="brand">
+    <h1>✏️ Little Nest School</h1>
+    <p>Question Paper Generator — UKG English Annual Exam</p>
+  </div>
+
+  <!-- Academic Year -->
+  <div class="card">
+    <h2>📅 Academic Year</h2>
+    <label>Year (e.g. 2024-25)</label>
+    <input type="text" id="acad-year" value="2024-25" placeholder="2024-25">
+  </div>
+
+  <!-- Q2: Images -->
+  <div class="card">
+    <h2>🖼️ Q.2 — Name the Picture (6 Images)</h2>
+    <div class="img-grid" id="img-grid">
+      <!-- slots rendered by JS -->
+    </div>
+  </div>
+
+  <!-- Q3: Rhyming Words -->
+  <div class="card">
+    <h2>🔤 Q.3 — Circle the Rhyming Words (4 rows)</h2>
+    <div id="q3-inputs"></div>
+  </div>
+
+  <button class="generate-btn" onclick="generatePaper()">Generate Question Paper →</button>
+</div>
+
+<!-- Preview Overlay -->
+<div id="preview-overlay">
+  <div class="preview-actions">
+    <button class="btn-close" onclick="closePreview()">✕ Close</button>
+    <button class="btn-save" id="btn-save-png" onclick="savePaper()">⬇ Save as PNG</button>
+  </div>
+  <div id="paper">
+    <!-- filled by JS -->
+  </div>
+</div>
+
+<script>
+// ── State ──
+const imgDataURLs = Array(6).fill(null);
+const q3Defaults = [
+  { word: 'top',  opts: ['pop', 'but', 'him'] },
+  { word: 'den',  opts: ['wet', 'hen', 'tap'] },
+  { word: 'gun',  opts: ['mat', 'jet', 'sun'] },
+  { word: 'hid',  opts: ['put', 'lid', 'sad'] },
+];
+
+// ── Build Q2 image slots ──
+function buildImgGrid() {
+  const grid = document.getElementById('img-grid');
+  grid.innerHTML = '';
+  for (let i = 0; i < 6; i++) {
+    const slot = document.createElement('div');
+    slot.className = 'img-slot';
+
+    const innerImg = imgDataURLs[i]
+      ? '<img src="' + imgDataURLs[i] + '" alt="">'
+      : '<span class="plus">\uFF0B</span>';
+
+    slot.innerHTML = '<span>Image ' + (i + 1) + '</span>'
+      + '<div class="img-upload-box" id="box-' + i + '">'
+      + innerImg
+      + '<input type="file" accept="image/*" onchange="handleImg(event,' + i + ')">'
+      + '</div>';
+
+    grid.appendChild(slot);
+  }
+}
+
+function handleImg(e, idx) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    imgDataURLs[idx] = ev.target.result;
+    buildImgGrid();
+  };
+  reader.readAsDataURL(file);
+}
+
+// ── Build Q3 inputs ──
+function buildQ3Inputs() {
+  const container = document.getElementById('q3-inputs');
+  container.innerHTML = '';
+  q3Defaults.forEach(function(row, i) {
+    const div = document.createElement('div');
+    div.className = 'q3-row';
+    div.innerHTML =
+      '<input type="text" id="q3w-'  + i + '" value="' + row.word    + '" placeholder="Word">'
+    + '<div class="sep">\u2013</div>'
+    + '<input type="text" id="q3o1-' + i + '" value="' + row.opts[0] + '" placeholder="Option 1">'
+    + '<input type="text" id="q3o2-' + i + '" value="' + row.opts[1] + '" placeholder="Option 2">'
+    + '<input type="text" id="q3o3-' + i + '" value="' + row.opts[2] + '" placeholder="Option 3">';
+    container.appendChild(div);
+  });
+}
+
+// ── Generate ──
+function generatePaper() {
+  const year  = document.getElementById('acad-year').value.trim() || '2024-25';
+  const paper = document.getElementById('paper');
+
+  // Build Q3 data
+  const q3rows = [];
+  for (let i = 0; i < 4; i++) {
+    q3rows.push({
+      word: document.getElementById(`q3w-${i}`).value.trim(),
+      opts: [
+        document.getElementById(`q3o1-${i}`).value.trim(),
+        document.getElementById(`q3o2-${i}`).value.trim(),
+        document.getElementById(`q3o3-${i}`).value.trim(),
+      ]
+    });
+  }
+
+  // Build Q2 image items
+  const q2Items = imgDataURLs.map(function(src, i) {
+    const imgHTML = src
+      ? '<img src="' + src + '" alt="img' + (i+1) + '">'
+      : '<div style="width:68px;height:68px;border:1.5px dashed #aaa;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:0.75rem;color:#bbb;">img</div>';
+    return '<div class="q2-item">' + imgHTML + '<div class="q2-line"></div></div>';
+  }).join('');
+
+  // Build Q3 rows
+  const q3RowsHTML = q3rows.map(function(r, i) {
+    return '<div class="q3-paper-row">'
+      + '<span class="word">' + (i+1) + ') ' + r.word + '</span>'
+      + '<span class="dash">\u2013</span>'
+      + '<span class="opt">' + r.opts[0] + '</span>'
+      + '<span class="opt">' + r.opts[1] + '</span>'
+      + '<span class="opt">' + r.opts[2] + '</span>'
+      + '</div>';
+  }).join('');
+
+  paper.innerHTML =
+    '<div class="paper-header">'
+    + '<div class="school-name">LITTLE NEST SCHOOL</div>'
+    + '<div class="exam-title">ANNUAL EXAM (' + year + ')</div>'
+    + '<div class="class-subj">CLASS \u2013 U.K.G.</div>'
+    + '<div class="class-subj">SUBJECT \u2013 ENGLISH</div>'
+    + '</div>'
+    + '<div class="paper-meta">'
+    + '<span>NAME \u2013 <span class="name-line"></span></span>'
+    + '<span>MM \u2013 100</span>'
+    + '</div>'
+    + '<div class="q-label"><span>Q.1 \u2013 Dictation</span><span class="marks">[1\u00d715 = 15]</span></div>'
+    + '<hr class="divider">'
+    + '<div class="q2-section">'
+    + '<div class="q-label"><span>Q.2 \u2013 Name the picture</span><span class="marks">[2\u00d76 = 12]</span></div>'
+    + '<div class="q2-grid">' + q2Items + '</div>'
+    + '</div>'
+    + '<hr class="divider">'
+    + '<div class="q3-section">'
+    + '<div class="q-label"><span>Q.3 \u2013 Circle the rhyming words.</span><span class="marks">[1\u00d74 = 4]</span></div>'
+    + q3RowsHTML
+    + '</div>';
+
+  document.getElementById('preview-overlay').classList.add('active');
+  document.body.style.overflow = 'hidden';
+}
+
+function closePreview() {
+  document.getElementById('preview-overlay').classList.remove('active');
+  document.body.style.overflow = '';
+}
+
+async function savePaper() {
+  const btn = document.getElementById('btn-save-png');
+  const paper = document.getElementById('paper');
+  btn.textContent = 'Rendering...';
+  btn.disabled = true;
+
+  try {
+    // Use html2canvas loaded dynamically
+    if (typeof html2canvas === 'undefined') {
+      await new Promise((resolve, reject) => {
+        const s = document.createElement('script');
+        s.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';
+        s.onload = resolve;
+        s.onerror = reject;
+        document.head.appendChild(s);
+      });
+    }
+    const canvas = await html2canvas(paper, {
+      scale: 2,
+      useCORS: true,
+      allowTaint: true,
+      backgroundColor: '#ffffff',
+      logging: false
+    });
+    const dataURL = canvas.toDataURL('image/png');
+
+    // Open in new tab (works in sandboxed iframes where link.click() is blocked)
+    const newTab = window.open();
+    if (newTab) {
+      newTab.document.write('<html><body style="margin:0;background:#888">'
+        + '<p style="font-family:sans-serif;padding:10px;color:#fff">Right-click the image below and choose <b>Save Image As</b> to download.</p>'
+        + '<img src="' + dataURL + '" style="max-width:100%;display:block">'
+        + '</body></html>');
+      newTab.document.close();
+    } else {
+      // Fallback: show image inline below the paper
+      let existing = document.getElementById('png-output');
+      if (existing) existing.remove();
+      const wrapper = document.createElement('div');
+      wrapper.id = 'png-output';
+      wrapper.style.cssText = 'margin-top:20px;text-align:center;';
+      const info = document.createElement('p');
+      info.style.cssText = 'color:#fff;font-family:sans-serif;margin-bottom:8px;';
+      info.textContent = 'Right-click the image below → Save Image As';
+      const img = document.createElement('img');
+      img.src = dataURL;
+      img.style.cssText = 'max-width:794px;width:100%;box-shadow:0 4px 20px rgba(0,0,0,0.5);';
+      wrapper.appendChild(info);
+      wrapper.appendChild(img);
+      document.getElementById('preview-overlay').appendChild(wrapper);
+    }
+  } catch(err) {
+    alert('Could not render image: ' + err.message);
+  }
+
+  btn.textContent = '⬇ Save as PNG';
+  btn.disabled = false;
+}
+
+// ── Init ──
+buildImgGrid();
+buildQ3Inputs();
+</script>
+</body>
+</html>
